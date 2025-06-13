@@ -74,14 +74,20 @@ export const useRecording = () => {
 
       let finalTranscript = '';
 
+      const [debugLog, setDebugLog] = useState('');
+      const log = (message: string) => {
+        console.log(message); // PC用
+        setDebugLog(prev => prev + '\n' + message); // スマホ表示用
+      };
+
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        console.log('✅ onresult が呼ばれました');
+        log('✅ onresult が呼ばれました');
         console.log('🎧 event:', event);
       
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
-          console.log('📝 transcript:', transcript);
+          log('📝 transcript: ' + transcript);
 
           if (event.results[i].isFinal) {
             finalTranscript += transcript + ' ';
@@ -90,7 +96,7 @@ export const useRecording = () => {
           }
         }
         const full = finalTranscript + interimTranscript;
-        console.log('📄 最終transcript:', full);
+        log('📄 最終transcript: ' + full);
         setTranscript(full);
       };
 
