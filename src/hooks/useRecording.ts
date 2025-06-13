@@ -75,16 +75,23 @@ export const useRecording = () => {
       let finalTranscript = '';
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
+        console.log('✅ onresult が呼ばれました');
+        console.log('🎧 event:', event);
+      
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
+          console.log('📝 transcript:', transcript);
+
           if (event.results[i].isFinal) {
             finalTranscript += transcript + ' ';
           } else {
             interimTranscript += transcript;
           }
         }
-        setTranscript(finalTranscript + interimTranscript);
+        const full = finalTranscript + interimTranscript;
+        console.log('📄 最終transcript:', full);
+        setTranscript(full);
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
