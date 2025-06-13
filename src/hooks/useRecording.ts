@@ -4,7 +4,6 @@ import type {
   SpeechRecognitionErrorEvent,
 } from '../types/speech'; // パスはファイル構成に合わせて修正
 
-
 // 型定義（SpeechRecognition を使うため）
 type SpeechRecognitionType = typeof window.SpeechRecognition extends undefined
   ? typeof window.webkitSpeechRecognition
@@ -15,10 +14,16 @@ export const useRecording = () => {
   const [transcript, setTranscript] = useState('');
   const [isSupported, setIsSupported] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
+  const [debugLog, setDebugLog] = useState('');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const recognitionRef = useRef<InstanceType<SpeechRecognitionType> | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
+
+  // ログ出力関数（スマホにも表示用）
+  const log = (message: string) => {
+    console.log(message);
+    setDebugLog(prev => prev + '\n' + message);
+  };
 
   // Check browser support
   useEffect(() => {
@@ -52,18 +57,18 @@ export const useRecording = () => {
 
       streamRef.current = stream;
 
-    let mediaRecorder: MediaRecorder;
+      let mediaRecorder: MediaRecorder;
 
-    try {
-      mediaRecorder = new MediaRecorder(stream, {
-      mimeType: 'audio/webm;codecs=opus',
-      });
-    } catch (err) {
-      console.error('🎤 MediaRecorder の作成に失敗:', err);
-      setError('録音機能がこのブラウザでサポートされていないか、初期化に失敗しました。');
-      return;
-    } 
-    mediaRecorderRef.current = mediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(stream, {
+          mimeType: 'audio/webm;codecs=opus',
+        });
+      } catch (err) {
+        console.error('🎤 MediaRecorder の作成に失敗:', err);
+        setError('録音機能がこのブラウザでサポートされていないか、初期化に失敗しました。');
+        return;
+      }
+      mediaRecorderRef.current = mediaRecorder;
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition() as InstanceType<SpeechRecognitionType>;
@@ -74,16 +79,10 @@ export const useRecording = () => {
 
       let finalTranscript = '';
 
-      const [debugLog, setDebugLog] = useState('');
-      const log = (message: string) => {
-        console.log(message); // PC用
-        setDebugLog(prev => prev + '\n' + message); // スマホ表示用
-      };
-
       recognition.onresult = (event: SpeechRecognitionEvent) => {
         log('✅ onresult が呼ばれました');
         console.log('🎧 event:', event);
-      
+
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
@@ -125,7 +124,6 @@ export const useRecording = () => {
 
       recognitionRef.current = recognition;
 
-      // MediaRecorder blob handling
       const chunks: Blob[] = [];
 
       mediaRecorder.ondataavailable = (event) => {
@@ -205,6 +203,7 @@ export const useRecording = () => {
     transcript,
     isSupported,
     error,
+    debugLog,
     startRecording,
     stopRecording,
     downloadTranscript,
@@ -222,4 +221,3 @@ declare global {
     };
   }
 }
-
