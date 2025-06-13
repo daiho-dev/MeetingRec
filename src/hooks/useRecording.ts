@@ -4,6 +4,12 @@ import type {
   SpeechRecognitionErrorEvent,
 } from '../types/speech'; // パスはファイル構成に合わせて修正
 
+interface ExtendedSpeechRecognition extends SpeechRecognition {
+  onstart?: () => void;
+  onaudiostart?: () => void;
+  onspeechstart?: () => void;
+}
+
 // 型定義（SpeechRecognition を使うため）
 type SpeechRecognitionType = typeof window.SpeechRecognition extends undefined
   ? typeof window.webkitSpeechRecognition
@@ -39,6 +45,11 @@ export const useRecording = () => {
   }, []);
 
   const startRecording = async () => {
+    if (isRecording) {
+      log('⚠️ 録音中のため startRecording をスキップします');
+      return;
+    }
+    
     log('🎬 startRecording が呼ばれました'); // 最初に追加
     if (!isSupported) {
       setError('音声録音または音声認識がサポートされていません。');
@@ -70,6 +81,7 @@ export const useRecording = () => {
       mediaRecorder = new MediaRecorder(stream, {
       mimeType: 'audio/webm;codecs=opus',
       });
+      log('🎛 MediaRecorder の作成に成功しました');
     } catch (err) {
       console.error('🎤 MediaRecorder の作成に失敗:', err);
       setError('録音機能がこのブラウザでサポートされていないか、初期化に失敗しました。');
@@ -80,8 +92,20 @@ export const useRecording = () => {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       log('🧠 SpeechRecognition インスタンスを作成します');
 
-      const recognition = new SpeechRecognition() as InstanceType<SpeechRecognitionType>;
+      const recognition = new SpeechRecognition() as ExtendedSpeechRecognition;
       log('🧠 SpeechRecognition の作成に成功しました');
+      
+      recognition.onstart = () => {
+        log('🎙 onstart: 音声認識が開始されました');
+      };
+
+      recognition.onaudiostart = () => {
+        log('🎧 onaudiostart: 音声入力が検出されました');
+      };
+
+      recognition.onspeechstart = () => {
+        log('🗣 onspeechstart: 音声が話され始めました');
+      };
 
       recognition.continuous = true;
       recognition.interimResults = true;
