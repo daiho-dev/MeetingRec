@@ -61,7 +61,7 @@ const TranscriptionPanel: React.FC<TranscriptionPanelProps> = ({
 
       {/* ✅ transcript ブロックの外に出す */}
       {debugLog && (
-        <div className="mt-6 p-4 bg-gray-100 border border-gray-300 rounded-lg text-xs whitespace-pre-wrap text-gray-800">
+        <div className="mt-6 p-4 bg-gray-100 border border-gray-300 rounded-lg text-xs whitespace-pre-wrap text-gray-800 overflow-x-auto">
           <h3 className="font-bold mb-2">デバッグログ</h3>
           <pre>{debugLog}</pre>
         </div>
