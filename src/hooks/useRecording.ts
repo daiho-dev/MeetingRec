@@ -48,31 +48,40 @@ export const useRecording = () => {
     try {
       setError(null);
 
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          sampleRate: 44100,
-        },
+    let stream: MediaStream;
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+      audio: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        sampleRate: 44100,
+      },
       });
+      log('🎙 マイクの取得に成功しました');
+    } catch (e) {
+      log('❌ マイク取得失敗: ' + (e instanceof Error ? e.message : String(e)));
+      setError('マイクの取得に失敗しました。ブラウザの設定や権限をご確認ください。');
+      return;
+    }
 
-      streamRef.current = stream;
+    let mediaRecorder: MediaRecorder;
 
-      let mediaRecorder: MediaRecorder;
-
-      try {
-        mediaRecorder = new MediaRecorder(stream, {
-          mimeType: 'audio/webm;codecs=opus',
-        });
-      } catch (err) {
-        console.error('🎤 MediaRecorder の作成に失敗:', err);
-        setError('録音機能がこのブラウザでサポートされていないか、初期化に失敗しました。');
-        return;
-      }
+    try {
+      mediaRecorder = new MediaRecorder(stream, {
+      mimeType: 'audio/webm;codecs=opus',
+      });
+    } catch (err) {
+      console.error('🎤 MediaRecorder の作成に失敗:', err);
+      setError('録音機能がこのブラウザでサポートされていないか、初期化に失敗しました。');
+      return;
+    }
       mediaRecorderRef.current = mediaRecorder;
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      log('🧠 SpeechRecognition インスタンスを作成します');
+
       const recognition = new SpeechRecognition() as InstanceType<SpeechRecognitionType>;
+      log('🧠 SpeechRecognition の作成に成功しました');
 
       recognition.continuous = true;
       recognition.interimResults = true;
