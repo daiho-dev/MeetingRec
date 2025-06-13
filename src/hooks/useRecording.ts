@@ -52,10 +52,18 @@ export const useRecording = () => {
 
       streamRef.current = stream;
 
-      const mediaRecorder = new MediaRecorder(stream, {
-        mimeType: 'audio/webm;codecs=opus',
+    let mediaRecorder: MediaRecorder;
+
+    try {
+      mediaRecorder = new MediaRecorder(stream, {
+      mimeType: 'audio/webm;codecs=opus',
       });
-      mediaRecorderRef.current = mediaRecorder;
+    } catch (err) {
+      console.error('🎤 MediaRecorder の作成に失敗:', err);
+      setError('録音機能がこのブラウザでサポートされていないか、初期化に失敗しました。');
+      return;
+    } 
+    mediaRecorderRef.current = mediaRecorder;
 
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognition() as InstanceType<SpeechRecognitionType>;
