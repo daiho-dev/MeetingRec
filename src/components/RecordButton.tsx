@@ -100,7 +100,7 @@ const RecordButton: React.FC<RecordButtonProps> = ({
         </p>
         <p className="text-sm text-gray-500 mt-1">
           {isSupported ? (
-            <>マイク: デフォルトマイク　認識言語: 日本語 (Japanese)</>
+            <>マイク: デフォルトマイク 認識言語: 日本語 (Japanese)</>
           ) : (
             <>Chrome、Edge、Safariブラウザをご利用ください</>
           )}

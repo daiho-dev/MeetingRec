@@ -1,4 +1,3 @@
-import React from 'react';
 import { Headphones } from 'lucide-react';
 import RecordButton from './components/RecordButton';
 import AudioWaveform from './components/AudioWaveform';
@@ -11,6 +10,7 @@ function App() {
     transcript,
     isSupported,
     error,
+    debugLog,
     startRecording,
     stopRecording,
     downloadTranscript
@@ -63,6 +63,7 @@ function App() {
             transcript={transcript}
             error={error}
             onDownload={downloadTranscript}
+            debugLog={debugLog} 
           />
         </div>
       </main>
