@@ -39,6 +39,7 @@ export const useRecording = () => {
   }, []);
 
   const startRecording = async () => {
+    log('🎬 startRecording が呼ばれました'); // 最初に追加
     if (!isSupported) {
       setError('音声録音または音声認識がサポートされていません。');
       return;
@@ -116,6 +117,7 @@ export const useRecording = () => {
         if (isRecording) {
           try {
             recognition.start();
+            log('🎤 音声認識を開始しました'); // ←この行を追加
           } catch (e) {
             console.log('Recognition restart failed:', e);
           }
