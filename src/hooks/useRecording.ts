@@ -130,32 +130,25 @@ export const useRecording = () => {
 
       mediaRecorder.onstop = async () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
-        log('🎤 録音ファイル（blob）をWhisper APIに送信します');
+        log('🎤 録音ファイル（blob）をGoogle Cloud APIに送信します');
         try {
           const formData = new FormData();
           formData.append('file', blob, 'audio.webm');
-          formData.append('model', 'whisper-1');
-          // 必要に応じてlanguageパラメータも追加可能
-          // formData.append('language', 'ja');
-
-          const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          const res = await fetch('/api/transcribe', {
             method: 'POST',
-            headers: {
-              'Authorization': 'Bearer YOUR_OPENAI_API_KEY'
-            },
             body: formData
           });
           const data = await res.json();
           if (data.text) {
             setTranscript(data.text);
-            log('✅ Whisper APIからテキストを取得しました');
+            log('✅ Google Cloud APIからテキストを取得しました');
           } else {
-            setError('Whisper APIからテキストを取得できませんでした');
-            log('❌ Whisper APIからテキストを取得できませんでした');
+            setError('Google Cloud APIからテキストを取得できませんでした');
+            log('❌ Google Cloud APIからテキストを取得できませんでした');
           }
         } catch (err) {
-          setError('Whisper APIへの送信に失敗しました');
-          log('❌ Whisper APIへの送信に失敗しました: ' + err);
+          setError('Google Cloud APIへの送信に失敗しました');
+          log('❌ Google Cloud APIへの送信に失敗しました: ' + err);
         }
       };
 
