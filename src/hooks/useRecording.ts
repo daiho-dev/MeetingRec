@@ -89,83 +89,36 @@ export const useRecording = () => {
     }
       mediaRecorderRef.current = mediaRecorder;
 
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      log('🧠 SpeechRecognition インスタンスを作成します');
+      // const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      // log('🧠 SpeechRecognition インスタンスを作成します');
 
-      const recognition = new SpeechRecognition() as ExtendedSpeechRecognition;
-      log('🧠 SpeechRecognition の作成に成功しました');
-      
-      recognition.onstart = () => {
-        log('🎙 onstart: 音声認識が開始されました');
-      };
+      // const recognition = new SpeechRecognition() as ExtendedSpeechRecognition;
+      // log('🧠 SpeechRecognition の作成に成功しました');
+      // 
+      // recognition.onstart = () => {
+      //   log('🎙 onstart: 音声認識が開始されました');
+      // };
 
-      recognition.onaudiostart = () => {
-        log('🎧 onaudiostart: 音声入力が検出されました');
-      };
+      // recognition.onaudiostart = () => {
+      //   log('🎧 onaudiostart: 音声入力が検出されました');
+      // };
 
-      recognition.onspeechstart = () => {
-        log('🗣 onspeechstart: 音声が話され始めました');
-      };
+      // recognition.onspeechstart = () => {
+      //   log('🗣 onspeechstart: 音声が話され始めました');
+      // };
 
-      recognition.continuous = false;
-      recognition.interimResults = true;
-      recognition.lang = 'ja-JP';
-      recognition.maxAlternatives = 1;
+      // recognition.continuous = false;
+      // recognition.interimResults = true;
+      // recognition.lang = 'ja-JP';
+      // recognition.maxAlternatives = 1;
 
-      let finalTranscript = '';
+      // let finalTranscript = '';
 
-      recognition.onresult = (event: SpeechRecognitionEvent) => {
-        log('✅ onresult が呼ばれました');
-        console.log('🎧 event:', event);
+      // recognition.onresult = (event: SpeechRecognitionEvent) => { ... };
+      // recognition.onerror = (event: SpeechRecognitionErrorEvent) => { ... };
+      // recognition.onend = () => { ... };
 
-        let interimTranscript = '';
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const transcript = event.results[i][0].transcript;
-          const confidence = event.results[i][0].confidence;
-          log(`📝 transcript: ${transcript} (confidence: ${confidence})`);
-
-          if (event.results[i].isFinal) {
-            finalTranscript += transcript + ' ';
-            log(`📄 確定テキスト: ${transcript} (confidence: ${confidence})`);
-            setTranscript(finalTranscript + interimTranscript);
-          } else {
-            interimTranscript += transcript;
-            log(`📄 仮テキスト: ${transcript} (confidence: ${confidence})`);
-            setTranscript(finalTranscript + interimTranscript);
-          }
-        }
-      };
-
-      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-        console.error('Speech recognition error:', event.error);
-        log(`❌ 音声認識エラー: ${event.error}`);
-        if (event.error === 'no-speech') {
-          setError('音声が検出されませんでした。');
-        } else if (event.error === 'audio-capture') {
-          setError('マイクにアクセスできませんでした。');
-        } else if (event.error === 'not-allowed') {
-          setError('マイクの使用が許可されていません。');
-        } else {
-          setError(`音声認識エラー: ${event.error}`);
-        }
-      };
-
-      recognition.onend = () => {
-        log('🎤 音声認識が終了しました');
-        if (isRecording) {
-          try {
-            setTimeout(() => {
-              recognition.start();
-              log('🎤 音声認識を再開しました');
-            }, 100);
-          } catch (e) {
-            log(`❌ 音声認識の再開に失敗: ${e}`);
-            console.error('Recognition restart failed:', e);
-          }
-        }
-      };
-
-      recognitionRef.current = recognition;
+      // recognitionRef.current = recognition;
 
       const chunks: Blob[] = [];
 
@@ -175,16 +128,38 @@ export const useRecording = () => {
         }
       };
 
-      mediaRecorder.onstop = () => {
+      mediaRecorder.onstop = async () => {
         const blob = new Blob(chunks, { type: 'audio/webm' });
-        console.log('録音ファイル（blob）:', blob);
-        // const audioURL = URL.createObjectURL(blob);
-        // const audio = new Audio(audioURL);
-        // audio.play();
+        log('🎤 録音ファイル（blob）をWhisper APIに送信します');
+        try {
+          const formData = new FormData();
+          formData.append('file', blob, 'audio.webm');
+          formData.append('model', 'whisper-1');
+          // 必要に応じてlanguageパラメータも追加可能
+          // formData.append('language', 'ja');
+
+          const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer YOUR_OPENAI_API_KEY'
+            },
+            body: formData
+          });
+          const data = await res.json();
+          if (data.text) {
+            setTranscript(data.text);
+            log('✅ Whisper APIからテキストを取得しました');
+          } else {
+            setError('Whisper APIからテキストを取得できませんでした');
+            log('❌ Whisper APIからテキストを取得できませんでした');
+          }
+        } catch (err) {
+          setError('Whisper APIへの送信に失敗しました');
+          log('❌ Whisper APIへの送信に失敗しました: ' + err);
+        }
       };
 
       mediaRecorder.start();
-      recognition.start();
 
       setIsRecording(true);
       setTranscript('');
