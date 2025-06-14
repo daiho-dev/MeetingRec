@@ -1,10 +1,8 @@
-const { SpeechClient } = require('@google-cloud/speech');
-const multer = require('multer');
-const fs = require('fs');
-const os = require('os');
-
-// Vercelのサーバーレス関数用のミドルウェアラッパー
-const path = require('path');
+import { SpeechClient } from '@google-cloud/speech';
+import multer from 'multer';
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
 
 // multerのセットアップ
 const upload = multer({ dest: os.tmpdir() });
@@ -20,7 +18,7 @@ function runMiddleware(req, res, fn) {
   });
 }
 
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Method not allowed' });
     return;
@@ -48,10 +46,11 @@ module.exports = async (req, res) => {
     const transcription = response.results.map(r => r.alternatives[0].transcript).join('\n');
     res.status(200).json({ text: transcription });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   } finally {
     // 一時ファイルの削除
     if (req.file && req.file.path) fs.unlinkSync(req.file.path);
     if (fs.existsSync(keyPath)) fs.unlinkSync(keyPath);
   }
-}; 
+} 
