@@ -38,7 +38,6 @@ export default async function handler(req, res) {
     const audio = { content: audioBytes };
     const config = {
       encoding: 'WEBM_OPUS',
-      sampleRateHertz: 16000,
       languageCode: 'ja-JP',
     };
     const request = { audio, config };
