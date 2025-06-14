@@ -34,6 +34,7 @@ declare global {
     lang: string;
     continuous: boolean;
     interimResults: boolean;
+    maxAlternatives: number;
     onaudioend?: (event: Event) => void;
     onerror?: (event: SpeechRecognitionErrorEvent) => void;
     onresult?: (event: SpeechRecognitionEvent) => void;

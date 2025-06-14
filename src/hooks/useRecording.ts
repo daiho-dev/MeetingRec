@@ -110,6 +110,7 @@ export const useRecording = () => {
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'ja-JP';
+      recognition.maxAlternatives = 1;
 
       let finalTranscript = '';
 
@@ -120,21 +121,24 @@ export const useRecording = () => {
         let interimTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; i++) {
           const transcript = event.results[i][0].transcript;
-          log('📝 transcript: ' + transcript);
+          const confidence = event.results[i][0].confidence;
+          log(`📝 transcript: ${transcript} (confidence: ${confidence})`);
 
           if (event.results[i].isFinal) {
             finalTranscript += transcript + ' ';
+            log(`📄 確定テキスト: ${transcript} (confidence: ${confidence})`);
+            setTranscript(finalTranscript + interimTranscript);
           } else {
             interimTranscript += transcript;
+            log(`📄 仮テキスト: ${transcript} (confidence: ${confidence})`);
+            setTranscript(finalTranscript + interimTranscript);
           }
         }
-        const full = finalTranscript + interimTranscript;
-        log('📄 最終transcript: ' + full);
-        setTranscript(full);
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.error('Speech recognition error:', event.error);
+        log(`❌ 音声認識エラー: ${event.error}`);
         if (event.error === 'no-speech') {
           setError('音声が検出されませんでした。');
         } else if (event.error === 'audio-capture') {
@@ -147,12 +151,14 @@ export const useRecording = () => {
       };
 
       recognition.onend = () => {
+        log('🎤 音声認識が終了しました');
         if (isRecording) {
           try {
             recognition.start();
-            log('🎤 音声認識を開始しました'); // ←この行を追加
+            log('🎤 音声認識を再開しました');
           } catch (e) {
-            console.log('Recognition restart failed:', e);
+            log(`❌ 音声認識の再開に失敗: ${e}`);
+            console.error('Recognition restart failed:', e);
           }
         }
       };
