@@ -107,7 +107,7 @@ export const useRecording = () => {
         log('🗣 onspeechstart: 音声が話され始めました');
       };
 
-      recognition.continuous = true;
+      recognition.continuous = false;
       recognition.interimResults = true;
       recognition.lang = 'ja-JP';
       recognition.maxAlternatives = 1;
@@ -154,8 +154,10 @@ export const useRecording = () => {
         log('🎤 音声認識が終了しました');
         if (isRecording) {
           try {
-            recognition.start();
-            log('🎤 音声認識を再開しました');
+            setTimeout(() => {
+              recognition.start();
+              log('🎤 音声認識を再開しました');
+            }, 100);
           } catch (e) {
             log(`❌ 音声認識の再開に失敗: ${e}`);
             console.error('Recognition restart failed:', e);
